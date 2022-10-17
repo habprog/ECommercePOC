@@ -1,0 +1,125 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+
+<div class="text-center">
+    <h1 class="display-4">Products</h1>
+    <section style="background-color: #eee;">
+        <div class="container py-5">
+            <div class="row" id="product">
+               
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    $(document).ready(() => {
+        getProducts();
+    });
+
+    const getProducts = () => {
+        let xhr = new XMLHttpRequest();
+        let url = "https://localhost:44372/api/Product";
+        xhr.open('GET', url, false);
+        xhr.setRequestHeader("content-type", "application/json");
+        xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+        try {
+
+            xhr.send();
+            if (xhr.status != 200) {
+                
+                //alert('Something went wrong try again!');
+            } else {
+                var res = JSON.parse(xhr.responseText);
+                console.log(res);
+                if(res.succeeded) {
+                    productTemp(res.data);
+                }else{
+                    $('#product').html(`<div class="col-md-6 mx-auto">${x.message}</div>`);
+                }
+            }
+        } catch (err) { // instead of onerror
+            //alert("Request failed");
+        }
+    }
+
+    const productTemp = (data) => {
+        console.log('here');
+        $('#product').html('');
+        data.forEach(x => {
+            let res = `<div class="col-md-12 col-lg-4 mb-4 mb-lg-0">
+                        <div class="card">
+                            <div class="d-flex justify-content-between p-3">
+                                <p class="lead mb-0">Today's Combo Offer</p>
+                                <div class="bg-info rounded-circle d-flex align-items-center justify-content-center shadow-1-strong"
+                                     style="width: 35px; height: 35px;">
+                                    <p class="text-white mb-0 small">x4</p>
+                                </div>
+                            </div>
+                                <img src="${x.thumbnail}"
+                                height="250"
+                                 class="card-img-top" alt="Laptop" />
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <p class="small"><a href="#!" class="text-muted">${x.category}</a></p>
+                                    <p class="small text-danger"><s>$ ${x.price}</s></p>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-3">
+                                        <h5 class="mb-0">${x.propductName}</h5>
+                                        <h5 class="text-dark mb-0">$ ${x.price}</h5>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-2">
+                                            <p class="text-muted mb-0">Available: <span class="fw-bold">${x.quantity < 1 ? 'Out of stock' : x.quantity}</span></p>
+
+                                    <div class="ms-auto">
+                                          <a class="btn btn-primary" href="javascript:void(0)" onclick="checkout('${x.id}')"> Buy Now </a>
+                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                    $('#product').append(res);
+        });
+    }
+
+    const checkout = (id) => {
+        let xhr = new XMLHttpRequest();
+        let url = "https://localhost:44372/api/Product/checkout/" + id;
+        xhr.open('GET', url, false);
+        xhr.setRequestHeader("content-type", "application/json");
+        xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+        try {
+            xhr.send();
+            if(xhr.status != 200) {
+
+                //alert('Something went wrong try again!');
+            }else{
+                var res = JSON.parse(xhr.responseText);
+                if(res.succeeded){
+                    Swal.fire(
+                        'Good job!',
+                        res.message,
+                        'success'
+                    ).then(() => {
+                        getProducts();
+                    });
+                }else{
+                    Swal.fire(
+                        'Oops!',
+                        res.message,
+                        'error'
+                    );
+                }
+            }
+        } catch (err) { // instead of onerror
+            //alert("Request failed");
+        }
+    }
+</script>
